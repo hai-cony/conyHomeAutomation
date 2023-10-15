@@ -11,7 +11,7 @@
 #include <ArduinoJson.h>
 
 /*
-  Writen by @hai.cony (instagram).
+  Writen by @hai.cony (instagram). 15 Oct 2023
   Support me on https://ko-fi.com/haicony or https://paypal.me/haicony
   This library created for hobbies and fun, if you want to contribute
   you can find code at github https://github.com/hai-cony/cony-home-automation-web
