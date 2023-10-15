@@ -10,9 +10,25 @@
 
 #include <ArduinoJson.h>
 
+/*
+  Writen by @hai.cony (instagram).
+  Support me on https://ko-fi.com/haicony or https://paypal.me/haicony
+  This library created for hobbies and fun, if you want to contribute
+  you can find code at github https://github.com/hai-cony/cony-home-automation-web
+*/
+
 String jsonWebToken;
+
+/*
+  it will be reset to 0 after 50 days. If you get an error after 50 days,
+  try to restart microcontroller.
+*/
 unsigned long lastTime = 0;
 
+/*
+  fingerprint get from web browser but changed to memory address.
+  fingerprint needed for https request.
+*/
 const uint8_t fingerprint[20] = {0xbb, 0x8b, 0x2c, 0xd9, 0x45, 0x95, 0xd5, 0xd8, 0xfc, 0x8a, 0x8d, 0x67, 0x56, 0x71, 0xd5, 0x99, 0xad, 0xf6, 0xd5, 0xfe};
 
 /*
@@ -22,16 +38,16 @@ const uint8_t fingerprint[20] = {0xbb, 0x8b, 0x2c, 0xd9, 0x45, 0x95, 0xd5, 0xd8,
 */
 String ConyHomeAutomation::startConnectionAndGetToken(String ssid, String password)
 {
-  // WiFiClientSecure client;  
-  
-  if (WiFi.status() != WL_CONNECTED){
+  if (WiFi.status() != WL_CONNECTED)
+  {
     Serial.printf("SSID : %s\n", ssid);
     Serial.printf("Password : %s\n", password);
     Serial.println("Connecting");
 
     WiFi.begin(ssid, password);
 
-    while (WiFi.status() != WL_CONNECTED){
+    while (WiFi.status() != WL_CONNECTED)
+    {
       delay(500);
       Serial.print(".");
     }
@@ -49,7 +65,7 @@ String ConyHomeAutomation::startConnectionAndGetToken(String ssid, String passwo
     }
   }
 
-  std::unique_ptr<BearSSL::WiFiClientSecure>client(new BearSSL::WiFiClientSecure);
+  std::unique_ptr<BearSSL::WiFiClientSecure> client(new BearSSL::WiFiClientSecure);
 
   client->setFingerprint(fingerprint);
 
@@ -57,7 +73,6 @@ String ConyHomeAutomation::startConnectionAndGetToken(String ssid, String passwo
 
   // Your Domain name with URL path or IP address with path
   https.begin(*client, "https://cony-home-automation-web.vercel.app/api/esp8266/auth");
-  // http.begin(*client, "https://aardvark-stunning-maggot.ngrok-free.app/api/esp8266/auth");
   https.addHeader("Content-Type", "application/json");
 
   // JSON Declare
@@ -85,14 +100,19 @@ String ConyHomeAutomation::startConnectionAndGetToken(String ssid, String passwo
   return jsonWebToken; // return the jwt token value only
 }
 
+/*
+  This function return JSON format but string type.
+  JSON transformed to string and store to obj variable.
+*/
 String ConyHomeAutomation::fetch(String token)
 {
   String obj;
-  if (WiFi.status() == WL_CONNECTED && (millis() - lastTime) > 3000){
-    std::unique_ptr<BearSSL::WiFiClientSecure>client(new BearSSL::WiFiClientSecure);
+  if (WiFi.status() == WL_CONNECTED && (millis() - lastTime) > 3000)
+  {
+    std::unique_ptr<BearSSL::WiFiClientSecure> client(new BearSSL::WiFiClientSecure);
 
     client->setFingerprint(fingerprint);
-    
+
     HTTPClient https;
 
     // Your Domain name with URL path or IP address with path
@@ -103,7 +123,7 @@ String ConyHomeAutomation::fetch(String token)
     // JSON Declare
     DynamicJsonDocument doc(2048);
     doc["api_key"] = "$argon2id$v=19$m=65536,t=3,p=4$gX6VFv3fKlvvqkvHBbpxWw$XVqT4tzrOjNj/oSoHx2qb5IG6TYB8mNM/SYdWQXHS+g";
-    ;
+    // token get from parameter
     doc["token"] = token;
     doc["chip_id"] = String(ESP.getChipId());
     doc["mac"] = WiFi.macAddress();
