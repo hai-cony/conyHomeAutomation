@@ -2,7 +2,8 @@
 #include <Arduino.h>
 #include <ESP8266WiFi.h>
 #include <ESP8266HTTPClient.h>
-#include <WiFiClientSecure.h>
+// #include <WiFiClientSecure.h>
+#include <WiFiClientSecureBearSSL.h>
 #include <WiFiClient.h>
 #include <EEPROM.h>
 
@@ -29,7 +30,7 @@ unsigned long lastTime = 0;
   fingerprint get from web browser but changed to memory address.
   fingerprint needed for https request.
 */
-const uint8_t fingerprint[20] = {0xbb, 0x8b, 0x2c, 0xd9, 0x45, 0x95, 0xd5, 0xd8, 0xfc, 0x8a, 0x8d, 0x67, 0x56, 0x71, 0xd5, 0x99, 0xad, 0xf6, 0xd5, 0xfe};
+const uint8_t fingerprint[20] = {0xca, 0xbd, 0x2a, 0x79, 0x1a, 0x07, 0x6a, 0x31, 0xf2, 0x1d, 0x25, 0x36, 0x35, 0xcb, 0x03, 0x9d, 0x43, 0x29, 0xa5, 0xe8};
 
 /*
   return the token from JsonWebToken. Function are not allowed
@@ -44,6 +45,7 @@ String ConyHomeAutomation::startConnectionAndGetToken(String ssid, String passwo
     Serial.printf("Password : %s\n", password);
     Serial.println("Connecting");
 
+    WiFi.mode(WIFI_STA);
     WiFi.begin(ssid, password);
 
     while (WiFi.status() != WL_CONNECTED)
@@ -65,9 +67,11 @@ String ConyHomeAutomation::startConnectionAndGetToken(String ssid, String passwo
     }
   }
 
+  // std::unique_ptr<BearSSL::WiFiClientSecure> client(new BearSSL::WiFiClientSecure);
   std::unique_ptr<BearSSL::WiFiClientSecure> client(new BearSSL::WiFiClientSecure);
 
-  client->setFingerprint(fingerprint);
+  // client->setFingerprint(fingerprint);
+  client->setInsecure();
 
   HTTPClient https;
 
@@ -107,11 +111,12 @@ String ConyHomeAutomation::startConnectionAndGetToken(String ssid, String passwo
 String ConyHomeAutomation::fetch(String token)
 {
   String obj;
-  if (WiFi.status() == WL_CONNECTED && (millis() - lastTime) > 3000)
+  if (WiFi.status() == WL_CONNECTED && (millis() - lastTime) > 5000)
   {
     std::unique_ptr<BearSSL::WiFiClientSecure> client(new BearSSL::WiFiClientSecure);
 
-    client->setFingerprint(fingerprint);
+    // client->setFingerprint(fingerprint);
+    client->setInsecure();
 
     HTTPClient https;
 
@@ -151,7 +156,7 @@ String ConyHomeAutomation::fetch(String token)
   }
   else
   {
-    if ((millis() - lastTime) > 3000)
+    if ((millis() - lastTime) > 5000)
     {
       lastTime = millis();
     }
